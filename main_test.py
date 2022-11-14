@@ -16,5 +16,12 @@ square2 = Place('square2', 10, [10, 10], 0, ['square1'])
 ##    y = randint(0, square1_dimension[1] - 1)
 ##    square1.field[x][y] = person
 
-assign(population[:20], square1)
+n = 10
+
+assign(population[:n], square1)
 print_field(square1)
+
+for _ in range(30):
+    square1.field = update_position_in_place(population[:n], square1)
+    print_field(square1)
+    input()
