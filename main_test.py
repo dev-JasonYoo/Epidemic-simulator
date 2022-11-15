@@ -1,4 +1,7 @@
 from lib import *
+from os import system
+from turtle import *
+from time import sleep
 
 ## Initialize Person instances
 population = [ Person(ID_num, 0, 0, 0) for ID_num in range(100) ]
@@ -21,7 +24,22 @@ n = 10
 assign(population[:n], square1)
 print_field(square1)
 
+## CMD graphic
+##for _ in range(30):
+##    system('cls')
+##    square1.field = update_position_in_place(population[:n], square1)
+##    print_field(square1)
+##    system('timeout 1')
+
+## Turtle module graphic
+penup()
+hideturtle()
+goto(-200,-200)
+tracer(False)
+screen = Screen()
+screen.setup(1.0, 1.0, startx = None, starty = None)
 for _ in range(30):
     square1.field = update_position_in_place(population[:n], square1)
-    print_field(square1)
-    input()
+    write(str_field(square1), font = ('Arial', 15, 'normal'))
+    sleep(1)
+    clear()
