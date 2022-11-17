@@ -29,7 +29,7 @@ def update_position_in_place(population: list, place: Place):
 ##        print(x, y, " -> ", dx, dy)
 
         if x+dx < dim_x and y+dy < dim_y:
-            if not field[y+dy][x+dx] != "_": # If no one is there
+            if not person_exists(field, [x+dx, y+dy]): # If no one is there
                 # Place instance
 ##                print(field[y][x] , field[y+dy][x+dx])
                 field[y][x] , field[y+dy][x+dx] = field[y+dy][x+dx] , field[y][x] # move forward
@@ -42,6 +42,29 @@ def update_position_in_place(population: list, place: Place):
             pass # Just leave him or her there
     
     return field
+
+def gen_new_case_list(population: list, place: Place):
+    close_list = close_persons()
+    pass
+
+def spread_epid():
+    pass
+
+def close_persons(field: list, xy: list):
+    field = field
+    x , y = xy
+    result = []
+    for dx in [-1, 1]:
+        for dy in [-1, 1]:
+            if person_exists(field, [x+dx , y+dy]):
+                result.append(field[x+dx , y+dy])
+    return result
+
+def person_exists(field: list, xy: list):
+    if field[xy[1]][xy[0]] == Place.empty: # field[y][x]
+        return False
+    else: return True
+    
 
 ## -----------visualize------------
 
@@ -57,16 +80,27 @@ def print_field(place: Place):
     print(result)
     return None
 
-def str_field(place: Place):
+def str_field_id(place: Place):
     result = ""
     for row in place.field:
         for col in row:
 ##            if col: print(col.ID_num, "\t", end = '') # Minimize the number of print() calling
 ##            else: print(col, "\t", end = '')
-            if not col == "_": result += str(col.ID_num) + "\t" # Better efficiency
+            if not col == Place.empty: result += str(col.ID_num) + "\t" # Better efficiency
             else: result += str(col) + "\t"
         result += "\n"*2
     return result
+
+def str_field_infect(place: Place):
+    x,y = place.dimension
+    result = ""
+    for row in place.field:
+        for col in row:
+            if not col == Place.empty:
+                result += "\u25A0" if col.status else "\u25A1"+ "\t"
+            else: result += "  " + "\t"
+        result += "|" + "\n"*2 + "|"
+    return "- "*7*x + "\n" + result+ "\n" + "- "*7*x
 
 
 ## -----------file output----------

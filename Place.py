@@ -2,6 +2,7 @@ from Person import *
 
 class Place:
     __adjacency_dict = {}
+    empty = '_'
     
     def __init__(self, name, capacity, dimension, control_lv, adjacents = []):
         self.__name = name
@@ -10,7 +11,7 @@ class Place:
         self.__population_list = []
         
         self.__dimension = dimension # [x,y] : list
-        self.__field = [ [ "_" for x in range(dimension[0]) ] for _ in range(dimension[1]) ]
+        self.__field = [ [ self.empty for x in range(dimension[0]) ] for y in range(dimension[1]) ]
 ##        for row in self.__field: print(row)
         
         Place.__adjacency_dict[name] = adjacents # list of strings

@@ -34,9 +34,10 @@ class Person:
     def place(self, value):
         self.__place = value
 
-    def get_status(self):
+    @property
+    def status(self):
         return self.__status
 
-    def set_status(self, status):
+    @status.setter
+    def status(self, status):
         self.__status = status
-        return None

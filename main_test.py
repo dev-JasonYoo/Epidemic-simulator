@@ -6,8 +6,8 @@ from time import sleep
 ## Initialize Person instances
 population = [ Person(ID_num, 0, 0, 0) for ID_num in range(100) ]
 
-##corona = Epid(0)
-##population[0].set_status(corona)
+corona = Epid(0.05)
+population[0].status = corona
 
 ## Initialize Place instances
 square1 = Place('square1', 10, [10, 10], 0, [])
@@ -40,6 +40,9 @@ screen = Screen()
 screen.setup(1.0, 1.0, startx = None, starty = None)
 for _ in range(30):
     square1.field = update_position_in_place(population[:n], square1)
-    write(str_field(square1), font = ('Arial', 15, 'normal'))
+##    write(str_field_id(square1), font = ('Arial', 15, 'normal'))
+    write(str_field_infect(square1), font = ('Arial', 15, 'normal'))
     sleep(1)
     clear()
+
+print(person_exists(square1.field, [0,0]))
