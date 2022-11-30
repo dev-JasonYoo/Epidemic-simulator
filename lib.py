@@ -6,7 +6,14 @@ from Place import *
 def assign(population: list, place: Place):
     dimension = place.dimension
     place.population_list += population
-    for person in population:
+
+    # The first person is always placed in the very middle
+    x = dimension[0]//2
+    y = dimension[1]//2
+    place.field[y][x] = population[0]
+    population[0].place = [place, [x, y]]
+    
+    for person in population[1:]:
         while True: # do over until it chooses empty coordinate
             x = randint(0, dimension[0] - 1)
             y = randint(0, dimension[1] - 1)
@@ -24,12 +31,10 @@ def update_position_in_place(population: list, place: Place):
     field = place.field
     dim_x = place.dimension[0]
     dim_y = place.dimension[1]
+    
     for person in population:
         if symptom_found(person):
-            if not in_quarantine(person): # for people showing symptom but not in quarantine
-                go_quarantine(person) # assign quarantine to person's place
-                continue # go on for the next person
-            else: # for people who are already in quarantine
+            if in_quarantine(person): # for people showing symptom but not in quarantine
                 continue # go on for the next person
         x = person.place[1][0]
         y = person.place[1][1]
@@ -74,36 +79,57 @@ def symptom_found(person: Person):
         status = person.status
         if status.symptomatic: # if one is infected to symptomatic one
             if status.incubation_days <= status.days: # and if symptoms became apparent
-                return True 
+                return True
     return False # if not infected, or infected to asymptomatic one
 
+def to_be_recovered(person: Person):
+    status = person.status
+    if status.recovery_days <= status.days: # if it's time to be cured
+        return True
+    return False
+
 def update_person_status(population: list):
+    
     for person in population:
         if is_infected(person): # for those infected
             person.status.add_days() # add 1 to elapsed days
-            if person.status.days >= person.status.recovery_days: # if it's time to be cured
-                person.status = Epid.immuned # assign Epid.immuned
-                free_quarantine(person)
+            if symptom_found(person): # for infected people showing symptoms
+                
+                if not in_quarantine(person): # but not in quarantine
+                    go_quarantine(person) # assign quarantine to person's place
+                    continue # go on for the next person
+                
+                elif to_be_recovered(person): # for people to be recovered (in quarantine)
+                    person.status = Epid.immuned # assign Epid.immuned
+                    free_quarantine(person)
+                    continue # go on for the next person
+    return None                
 
 def get_case_list(population: list):
     return [ person for person in population if is_infected(person) ] # sets of persons infected
 
 def update_new_case(case_list: list): # update new cases based on input case list
+    result = {
+        'new_case_num': 0,
+        'infectious_num': len(case_list),
+        'quarantine_num': 0
+    }
+    
     for infected_person in case_list: # iterate all the infected
         if in_quarantine(infected_person):# infected people in quarantine do not spread disease
+            result['quarantine_num'] += 1
             continue # so go on for the next person
         xy = infected_person.place[1]
         close_list = close_persons(infected_person.place[0].field, xy) # load a list of close Persons
 
-        #print(infected_person)
         cpc = infected_person.status.cpc
         for close_person in close_list: # determine if close persons get infected
             if is_susceptible(close_person): # if the close person isn't infected yet(still susceptible)
                 infection = choices( [True, False], [cpc, 1 - cpc] )[0] # infection by the probability of cpc
                 if infection:
+                    result['new_case_num'] += 1
                     close_person.status = infected_person.status.spread() # update new cases
-    #print()
-    return None
+    return result
 
 def close_persons(field: list, xy: list):
     field = field
@@ -129,9 +155,9 @@ def person_exists(field: list, xy: list):
 
 def spread_epid(population):
     case_list = get_case_list(population)
-    update_new_case(case_list)
+    new_case_num = update_new_case(case_list)
     update_person_status(population) # after all daily activity, go on for the next day
-    return None
+    return new_case_num # return the number of daily new cases
     
 def is_infected(person: Person):
     return isinstance(person.status, Epid)
@@ -181,12 +207,16 @@ def str_field_infect(place: Place):
     for row in place.field:
         for person in row:
             if not person == Place.empty: # if there is person
-                if is_infected(person): # if infeced
-                    result += ("\u25A0" + tab)
-                elif not is_susceptible(person): # if already cured
-                    result += ("\u2594" + tab)
-                else: # if suceptible
-                    result += ("\u25B4"+ tab)
+                try:
+                    if is_infected(person): # if infeced
+                        result += ("\u25A0" + tab)
+                    elif not is_susceptible(person): # if already cured
+                        result += ("\u2594" + tab)
+                    else: # if suceptible
+                        result += ("\u25B4"+ tab)
+                except AttributeError:
+                    print(person)
+                    raise
             else: result += "  " + tab
         result += "|" + "\n"*2 + "|"
     return "- "*int(3.8*x) + "\n" + "|" + result[:-2] + "- "*int(3.8*x)

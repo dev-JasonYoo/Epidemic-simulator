@@ -16,7 +16,7 @@ square1 = Place('square1', 10, [30, 30], 0, [])
 ##square2 = Place('square2', 10, [10, 10], 0, ['square1'])
 
 ##square1_dimension = square1.dimension
-##for person in population[:10]:
+##for person in population[:10]:5
 ##    x = randint(0, square1_dimension[0] - 1)
 ##    y = randint(0, square1_dimension[1] - 1)
 ##    square1.field[x][y] = person
@@ -46,5 +46,4 @@ for day in range(200):
     clear()
 ##    for person in population[:n]:
 ##        if is_infected(person): print(person)
-    print()
     spread_epid(population[:n])
