@@ -22,7 +22,8 @@ class Epid:
     def cpc(self):
         return self.__cpc
 
-    def get_incubation_days(self):
+    @property
+    def incubation_days(self):
         return self.__incubation_days
 
     @property
@@ -41,7 +42,8 @@ class Epid:
         self.__days += 1
         return None
 
-    def get_symptomatic(self):
+    @property
+    def symptomatic(self):
         return self.__symptomatic
 
     def spread(self): # returns Epid object with same attributes but 0 for elapsed days

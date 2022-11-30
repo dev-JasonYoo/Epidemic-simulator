@@ -3,6 +3,9 @@ from Person import *
 class Place:
     __adjacency_dict = {}
     empty = '_'
+    __place_list = []
+
+    quarantine = False
     
     def __init__(self, name, capacity, dimension, control_lv, adjacents = []):
         self.__name = name
@@ -18,6 +21,8 @@ class Place:
         for place in adjacents:
             Place.__adjacency_dict[str(place)].append(name) # dictionary value : sets instead of list? on behalf of no repeating items
 
+        Place.__place_list += [self] # add to '__place_list'
+    
         return None
 
     def __repr__(self):
@@ -28,7 +33,11 @@ class Place:
 
     @classmethod
     def get_adjacency_dict(cls):
-        return Place.__adjacency_dict
+        return cls.__adjacency_dict
+
+    @classmethod
+    def get_place_list(cls):
+        return cls.__place_list
 
     @property # write an explanation of what @property decorator is and where I learned
     def dimension(self):

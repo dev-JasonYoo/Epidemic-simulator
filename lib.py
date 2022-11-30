@@ -5,9 +5,9 @@ from Place import *
 
 def assign(population: list, place: Place):
     dimension = place.dimension
-    place.population_list = population
+    place.population_list += population
     for person in population:
-        while True:
+        while True: # do over until it chooses empty coordinate
             x = randint(0, dimension[0] - 1)
             y = randint(0, dimension[1] - 1)
             if place.field[y][x] == Place.empty: break
@@ -25,6 +25,12 @@ def update_position_in_place(population: list, place: Place):
     dim_x = place.dimension[0]
     dim_y = place.dimension[1]
     for person in population:
+        if symptom_found(person):
+            if not in_quarantine(person): # for people showing symptom but not in quarantine
+                go_quarantine(person) # assign quarantine to person's place
+                continue # go on for the next person
+            else: # for people who are already in quarantine
+                continue # go on for the next person
         x = person.place[1][0]
         y = person.place[1][1]
         dx = randint(-1,1) # predetermine what direction to move
@@ -46,18 +52,46 @@ def update_position_in_place(population: list, place: Place):
     
     return field
 
+def go_quarantine(person: Person):
+    # Place instance
+    place = person.place[0]
+    x,y = person.place[1]
+    place.field[y][x] = Place.empty
+
+    # Person instance
+    person.place = Place.quarantine
+
+    return None
+
+def free_quarantine(person: Person):
+    # free from quarantine: return the immuned person to a random place
+    place = choices(Place.get_place_list())
+    assign([person], place[0])
+    return None
+
+def symptom_found(person: Person):
+    if is_infected(person):
+        status = person.status
+        if status.symptomatic: # if one is infected to symptomatic one
+            if status.incubation_days <= status.days: # and if symptoms became apparent
+                return True 
+    return False # if not infected, or infected to asymptomatic one
+
 def update_person_status(population: list):
     for person in population:
         if is_infected(person): # for those infected
-            person.status.days += 1 # add 1 to elapsed days
+            person.status.add_days() # add 1 to elapsed days
             if person.status.days >= person.status.recovery_days: # if it's time to be cured
                 person.status = Epid.immuned # assign Epid.immuned
+                free_quarantine(person)
 
 def get_case_list(population: list):
     return [ person for person in population if is_infected(person) ] # sets of persons infected
 
 def update_new_case(case_list: list): # update new cases based on input case list
     for infected_person in case_list: # iterate all the infected
+        if in_quarantine(infected_person):# infected people in quarantine do not spread disease
+            continue # so go on for the next person
         xy = infected_person.place[1]
         close_list = close_persons(infected_person.place[0].field, xy) # load a list of close Persons
 
@@ -104,6 +138,11 @@ def is_infected(person: Person):
 
 def is_susceptible(person: Person):
     if person.status == Epid.susceptible:
+        return True
+    return False
+
+def in_quarantine(person: Person):
+    if person.place == Place.quarantine:
         return True
     return False
 

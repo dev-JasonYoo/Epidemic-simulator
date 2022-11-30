@@ -13,7 +13,7 @@ population[0].status = corona
 
 ## Initialize Place instances
 square1 = Place('square1', 10, [30, 30], 0, [])
-square2 = Place('square2', 10, [10, 10], 0, ['square1'])
+##square2 = Place('square2', 10, [10, 10], 0, ['square1'])
 
 ##square1_dimension = square1.dimension
 ##for person in population[:10]:
@@ -42,7 +42,7 @@ for day in range(200):
     square1.field = update_position_in_place(population[:n], square1)
 ##    write(str_field_id(square1), font = ('Arial', 5, 'normal'))
     write(str_field_infect(square1) + f"Day {day+1}", font = ('Arial', 7, 'normal'))
-    #sleep(0.1)
+    sleep(0.05)
     clear()
 ##    for person in population[:n]:
 ##        if is_infected(person): print(person)
