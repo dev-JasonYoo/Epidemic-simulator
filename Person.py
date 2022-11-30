@@ -6,11 +6,13 @@ class Person:
         self.__name = name
         self.__age = age
         self.__place= place
-        self.__status = None
-        return None
+        self.__status = Epid.susceptible
 
     def __repr__(self):
-        return f"Person({self.__ID_num}, {self.__name}, {self.__age}, {self.__place})"
+        try:
+            return f"Person({self.__ID_num}, {self.__name}, {self.__age}, {self.__place}, {self.__status})"
+        except TypeError:
+            print(f"Person({self.__ID_num}, {self.__name}, {self.__age}, {self.__place}")
 
     @property
     def ID_num(self):

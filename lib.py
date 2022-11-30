@@ -7,9 +7,12 @@ def assign(population: list, place: Place):
     dimension = place.dimension
     place.population_list = population
     for person in population:
+        while True:
+            x = randint(0, dimension[0] - 1)
+            y = randint(0, dimension[1] - 1)
+            if place.field[y][x] == Place.empty: break
+            
         # Place instance
-        x = randint(0, dimension[0] - 1)
-        y = randint(0, dimension[1] - 1)
         place.field[y][x] = person
 
         # Person instance
@@ -28,7 +31,7 @@ def update_position_in_place(population: list, place: Place):
         dy = randint(-1,1)
 ##        print(x, y, " -> ", dx, dy)
 
-        if x+dx < dim_x and y+dy < dim_y:
+        if (0 < x+dx) and (x+dx < dim_x) and (0 < y+dy) and (y+dy < dim_y):
             if not person_exists(field, [x+dx, y+dy]): # If no one is there
                 # Place instance
 ##                print(field[y][x] , field[y+dy][x+dx])
@@ -39,16 +42,34 @@ def update_position_in_place(population: list, place: Place):
                 person.place[1][0] += dx
                 person.place[1][1] += dy
         else: # If a person bumps into wall
-            pass # Just leave him or her there
+            pass # Just leave it there
     
     return field
 
-def gen_new_case_list(population: list, place: Place):
-    close_list = close_persons()
-    pass
+def update_person_status(population: list):
+    for person in population:
+        if is_infected(person): # for those infected
+            person.status.days += 1 # add 1 to elapsed days
+            if person.status.days >= person.status.recovery_days: # if it's time to be cured
+                person.status = Epid.immuned # assign Epid.immuned
 
-def spread_epid():
-    pass
+def get_case_list(population: list):
+    return [ person for person in population if is_infected(person) ] # sets of persons infected
+
+def update_new_case(case_list: list): # update new cases based on input case list
+    for infected_person in case_list: # iterate all the infected
+        xy = infected_person.place[1]
+        close_list = close_persons(infected_person.place[0].field, xy) # load a list of close Persons
+
+        #print(infected_person)
+        cpc = infected_person.status.cpc
+        for close_person in close_list: # determine if close persons get infected
+            if is_susceptible(close_person): # if the close person isn't infected yet(still susceptible)
+                infection = choices( [True, False], [cpc, 1 - cpc] )[0] # infection by the probability of cpc
+                if infection:
+                    close_person.status = infected_person.status.spread() # update new cases
+    #print()
+    return None
 
 def close_persons(field: list, xy: list):
     field = field
@@ -56,26 +77,46 @@ def close_persons(field: list, xy: list):
     result = []
     for dx in [-1, 1]:
         for dy in [-1, 1]:
-            if person_exists(field, [x+dx , y+dy]):
-                result.append(field[x+dx , y+dy])
+            if 0 <= (x+dx) and 0 <= (y+dy): # to prevent negative number index (ex: [-1]) 
+                if person_exists(field, [x+dx , y+dy]):
+                    result.append(field[y+dy][x+dx])
     return result
 
 def person_exists(field: list, xy: list):
-    if field[xy[1]][xy[0]] == Place.empty: # field[y][x]
-        return False
-    else: return True
+    try:
+        if field[xy[1]][xy[0]] == Place.empty: # field[y][x]
+            return False # if it's empty, 
+        else: return True
+    except IndexError: # if it's out of index
+        return False # it can be considered as empty as well
+##        print(field)
+##        print(xy)
+##        raise IndexError
+
+def spread_epid(population):
+    case_list = get_case_list(population)
+    update_new_case(case_list)
+    update_person_status(population) # after all daily activity, go on for the next day
+    return None
     
+def is_infected(person: Person):
+    return isinstance(person.status, Epid)
+
+def is_susceptible(person: Person):
+    if person.status == Epid.susceptible:
+        return True
+    return False
 
 ## -----------visualize------------
 
 def print_field(place: Place):
     result = ""
     for row in place.field:
-        for col in row:
-##            if col: print(col.ID_num, "\t", end = '') # Minimize the number of print() calling
-##            else: print(col, "\t", end = '')
-            if not col == "_": result += str(col.ID_num) + "\t" # Better efficiency
-            else: result += str(col) + "\t"
+        for person in row:
+##            if person: print(person.ID_num, "\t", end = '') # Minimize the number of print() calling
+##            else: print(person, "\t", end = '')
+            if not person == "_": result += str(person.ID_num) + "\t" # Better efficiency
+            else: result += str(person) + "\t"
         result += "\n"
     print(result)
     return None
@@ -83,24 +124,32 @@ def print_field(place: Place):
 def str_field_id(place: Place):
     result = ""
     for row in place.field:
-        for col in row:
-##            if col: print(col.ID_num, "\t", end = '') # Minimize the number of print() calling
-##            else: print(col, "\t", end = '')
-            if not col == Place.empty: result += str(col.ID_num) + "\t" # Better efficiency
-            else: result += str(col) + "\t"
+        for person in row:
+##            if person: print(person.ID_num, "\t", end = '') # Minimize the number of print() calling
+##            else: print(person, "\t", end = '')
+            if not person == Place.empty: result += str(person.ID_num) + "\t" # Better efficiency
+            else: result += str(person) + "\t"
         result += "\n"*2
     return result
 
+# 6 demonstrates the right ratio.
+# "\t" is as long as 12 to 13
+n = 6
+tab = " " * n
 def str_field_infect(place: Place):
     x,y = place.dimension
     result = ""
     for row in place.field:
-        for col in row:
-            if not col == Place.empty:
-                result += "\u25A0" if col.status else "\u25A1"+ "\t"
-            else: result += "  " + "\t"
+        for person in row:
+            if not person == Place.empty: # if there is person
+                if is_infected(person): # if infeced
+                    result += ("\u25A0" + tab)
+                elif not is_susceptible(person): # if already cured
+                    result += ("\u2594" + tab)
+                else: # if suceptible
+                    result += ("\u25B4"+ tab)
+            else: result += "  " + tab
         result += "|" + "\n"*2 + "|"
-    return "- "*7*x + "\n" + result+ "\n" + "- "*7*x
-
+    return "- "*int(3.8*x) + "\n" + "|" + result[:-2] + "- "*int(3.8*x)
 
 ## -----------file output----------

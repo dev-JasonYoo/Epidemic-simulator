@@ -1,24 +1,41 @@
 from random import choices
 
 class Epid:
-    def __init__(self, cpc, incubation_days = 7, days = 0, symptomatic = True):
+    immuned = True # If it's set as False, there is no immunization
+    susceptible = False
+    
+    def __init__(self, cpc, incubation_days = 7, recovery_days = 14, days = 0, symptomatic = True):
         self.__cpc = cpc # number of cases per contact
         self.__incubation_days = incubation_days
+        self.__recovery_days = recovery_days
         self.__days = days
         self.__symptomatic = symptomatic
         return None
 
     def __repr__(self):
-        return f"Epid({self.__R0}, {self.__incubation_days}, {self.__days}, {self.__symptomatic})"
+        return f"Epid({self.__cpc}, {self.__incubation_days}, {self.__recovery_days}, {self.__days}, {self.__symptomatic})"
 
     def __str__(self):
-        pass
+        return f"Epid({self.__cpc}, {self.__incubation_days}, {self.__recovery_days}, {self.__days}, {self.__symptomatic})"
+
+    @property
+    def cpc(self):
+        return self.__cpc
 
     def get_incubation_days(self):
         return self.__incubation_days
-    
-    def get_days(self):
+
+    @property
+    def recovery_days(self):
+        return self.__recovery_days
+
+    @property
+    def days(self):
         return self.__days
+
+    @days.setter
+    def days(self, value):
+        self.__days = value
 
     def add_days(self):
         self.__days += 1
@@ -27,5 +44,6 @@ class Epid:
     def get_symptomatic(self):
         return self.__symptomatic
 
-    def determine_infect(self, *factors):        
-        return choice([True, False], [self.cpc, 1-self.cpc])
+    def spread(self): # returns Epid object with same attributes but 0 for elapsed days
+        return eval(f"Epid({self.__cpc}, {self.__incubation_days}, {self.__recovery_days}, 0, {self.__symptomatic})")
+
