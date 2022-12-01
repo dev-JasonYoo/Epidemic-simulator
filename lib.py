@@ -1,9 +1,10 @@
 from random import randint
+from random import choices
 from Place import *
 
 ## ----------main()-----------
 
-def assign(population: list, place: Place):
+def init_assign(population: list, place: Place, init = False):
     dimension = place.dimension
     place.population_list += population
 
@@ -25,7 +26,23 @@ def assign(population: list, place: Place):
         # Person instance
         person.place = [place, [x, y]]
     return None
+
+def assign(population: list, place: Place, init = False):
+    dimension = place.dimension
+    place.population_list += population
     
+    for person in population:
+        while True: # do over until it chooses empty coordinate
+            x = randint(0, dimension[0] - 1)
+            y = randint(0, dimension[1] - 1)
+            if place.field[y][x] == Place.empty: break
+
+        # Place instance
+        place.field[y][x] = person
+
+        # Person instance
+        person.place = [place, [x, y]]
+    return None
     
 def update_position_in_place(population: list, place: Place):
     field = place.field
@@ -34,26 +51,31 @@ def update_position_in_place(population: list, place: Place):
     
     for person in population:
         if symptom_found(person):
-            if in_quarantine(person): # for people showing symptom but not in quarantine
-                continue # go on for the next person
-        x = person.place[1][0]
-        y = person.place[1][1]
-        dx = randint(-1,1) # predetermine what direction to move
-        dy = randint(-1,1)
-##        print(x, y, " -> ", dx, dy)
+            if in_quarantine(person): # for people showing symptom in quarantine
+                continue # let them in quarantine
 
-        if (0 < x+dx) and (x+dx < dim_x) and (0 < y+dy) and (y+dy < dim_y):
-            if not person_exists(field, [x+dx, y+dy]): # If no one is there
-                # Place instance
-##                print(field[y][x] , field[y+dy][x+dx])
-                field[y][x] , field[y+dy][x+dx] = field[y+dy][x+dx] , field[y][x] # move forward
-##                print(field[y][x] , field[y+dy][x+dx])
+        trial = 0
+        while True:
+            x = person.place[1][0]
+            y = person.place[1][1]
+            dx = randint(-4,4) # predetermine what direction to move
+            dy = randint(-4,4)
 
-                # Person instance
-                person.place[1][0] += dx
-                person.place[1][1] += dy
-        else: # If a person bumps into wall
-            pass # Just leave it there
+            if (0 < x+dx) and (x+dx < dim_x) and (0 < y+dy) and (y+dy < dim_y):
+                if not person_exists(field, [x+dx, y+dy]): # if it succeeded finding the next possible coordinate
+                    break
+
+            trial += 1
+            if trial == 32: # if 32 trials are all failed, consider it as stuck
+                dx, dy = 0, 0 # let it stay there
+                break
+                
+        # Place instance
+        field[y][x] , field[y+dy][x+dx] = field[y+dy][x+dx] , field[y][x] # move forward
+
+        # Person instance
+        person.place[1][0] += dx
+        person.place[1][1] += dy
     
     return field
 
@@ -88,22 +110,27 @@ def to_be_recovered(person: Person):
         return True
     return False
 
-def update_person_status(population: list):
+def update_person_status(population: list, quarantine):
+    new_recovered = 0
     
     for person in population:
         if is_infected(person): # for those infected
             person.status.add_days() # add 1 to elapsed days
-            if symptom_found(person): # for infected people showing symptoms
+            if symptom_found(person): # for infected people showing symptoms]
                 
                 if not in_quarantine(person): # but not in quarantine
-                    go_quarantine(person) # assign quarantine to person's place
-                    continue # go on for the next person
-                
-                elif to_be_recovered(person): # for people to be recovered (in quarantine)
+                    if quarantine: # only if quarantine is required
+                        go_quarantine(person) # assign quarantine to person's place
+                        continue # go on for the next person
+
+                if to_be_recovered(person): # for people to be recovered (in quarantine)
                     person.status = Epid.immuned # assign Epid.immuned
-                    free_quarantine(person)
+                    if quarantine: # only if quarantinen is required
+                        free_quarantine(person)
+                    new_recovered += 1
                     continue # go on for the next person
-    return None                
+                    
+    return new_recovered                
 
 def get_case_list(population: list):
     return [ person for person in population if is_infected(person) ] # sets of persons infected
@@ -135,8 +162,8 @@ def close_persons(field: list, xy: list):
     field = field
     x , y = xy
     result = []
-    for dx in [-1, 1]:
-        for dy in [-1, 1]:
+    for dx in [-1, 0, 1]:
+        for dy in [-1, 0, 1]:
             if 0 <= (x+dx) and 0 <= (y+dy): # to prevent negative number index (ex: [-1]) 
                 if person_exists(field, [x+dx , y+dy]):
                     result.append(field[y+dy][x+dx])
@@ -153,11 +180,13 @@ def person_exists(field: list, xy: list):
 ##        print(xy)
 ##        raise IndexError
 
-def spread_epid(population):
+def spread_epid(population, quarantine):
     case_list = get_case_list(population)
-    new_case_num = update_new_case(case_list)
-    update_person_status(population) # after all daily activity, go on for the next day
-    return new_case_num # return the number of daily new cases
+    result = update_new_case(case_list) # dictionary: 'new_case_num', 'infectious_num', 'quarantine_num'
+    new_recovered_num = update_person_status(population, quarantine) # after all daily activity, go on for the next day
+
+    result['new_recovered_num'] = new_recovered_num
+    return result # return the daily result
     
 def is_infected(person: Person):
     return isinstance(person.status, Epid)
@@ -207,16 +236,12 @@ def str_field_infect(place: Place):
     for row in place.field:
         for person in row:
             if not person == Place.empty: # if there is person
-                try:
-                    if is_infected(person): # if infeced
-                        result += ("\u25A0" + tab)
-                    elif not is_susceptible(person): # if already cured
-                        result += ("\u2594" + tab)
-                    else: # if suceptible
-                        result += ("\u25B4"+ tab)
-                except AttributeError:
-                    print(person)
-                    raise
+                if is_infected(person): # if infeced
+                    result += ("\u25A0" + tab)
+                elif not is_susceptible(person): # if already cured
+                    result += ("\u2594" + tab)
+                else: # if suceptible
+                    result += ("\u25B4"+ tab)
             else: result += "  " + tab
         result += "|" + "\n"*2 + "|"
     return "- "*int(3.8*x) + "\n" + "|" + result[:-2] + "- "*int(3.8*x)
