@@ -1,10 +1,8 @@
-from random import choices
-
 class Epid:
     immuned = True # If it's set as False, there is no immunization
     susceptible = False
     
-    def __init__(self, cpc, incubation_days = 7, recovery_days = 14, days = 0, symptomatic = True):
+    def __init__(self, cpc, incubation_days = 5, recovery_days = 14, days = 0, symptomatic = True):
         self.__cpc = cpc # number of cases per contact
         self.__incubation_days = incubation_days
         self.__recovery_days = recovery_days
