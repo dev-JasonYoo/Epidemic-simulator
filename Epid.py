@@ -119,7 +119,6 @@ class Epid:
         if self.asymptomatic_variant:
             prob = self.asymptomatic_variant
             if choices([True, False], [prob, 1 - prob])[0]:
-                print('variant!')
                 # succeed to mutate
                 return eval(f"Epid({self.__cpc}, {self.__incubation_days}, {self.__recovery_days}, 0, False, {self.__asymptomatic_variant})")
             # failed to mutate

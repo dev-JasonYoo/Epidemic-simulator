@@ -8,9 +8,9 @@ from functools import partial
 import numpy as np
 from math import sqrt
 
-n=270 # The number of population
+n = 270 # The number of population
 n0 = 3 # The number of the initial cases
-corona = repr(Epid(0.2, incubation_days = 4))
+corona = repr(Epid(0.2, incubation_days = 4, asymptomatic_variant = 0.4))
 
 def test(quarantine = True):
     ''' gets a boolean value of the quarantine requirement
@@ -314,7 +314,7 @@ def multiple_plot(result_list):
     gray = patches.Patch(color='gray', label='Susceptible')
     red = patches.Patch(color='red', label='Infectious')
     blue = patches.Patch(color='blue', label='Recovered')
-    ax2.legend(loc = 'upper right')
+    ax2.legend(handles = [gray, red, blue])
     plt.show()
 
     return None
