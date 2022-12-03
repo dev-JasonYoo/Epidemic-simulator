@@ -28,13 +28,13 @@ class Person:
         ''' Returns the representation of this Person object
 
         Person -> str '''
-        return f"Person({self.__ID_num}, {self.__name}, {self.__age}, {self.__place}, {self.__status})"
+        return f"Person({self.__ID_num}, {self.__name}, {self.__age}, {self.__place})"
 
     def __str__(self):
         ''' Returns the string form of this Person object
 
         Person -> str '''
-        return f"Person({self.__ID_num}, {self.__name}, {self.__age}, {self.__place}, {self.__status})"
+        return f"Person({self.__ID_num}, {self.__name}, {self.__age}, {self.__place})"
 
     @property
     def ID_num(self):

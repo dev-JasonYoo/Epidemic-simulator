@@ -3,7 +3,7 @@ from random import choices
 class Epid:
     ''' Information about Epid class
 
-    Attributes:
+    Static variables:
 
     immuned
         bool
@@ -11,22 +11,25 @@ class Epid:
     susceptible
         bool
 
-    cpc
+
+    Attributes:
+    
+    __cpc
         float
 
-    incubation_days
+    __incubation_days
         int
 
-    recover_days
+    __recover_days
         int
 
-    days
+    __days
         int
 
-    symptomatic
+    __symptomatic
         bool
 
-    asymptomatic_variant
+    __asymptomatic_variant
         bool or float '''
     immuned = True # If it's set as False, there is no immunization
     susceptible = False
@@ -60,28 +63,28 @@ class Epid:
 
     @property
     def cpc(self):
-        ''' Getter method of attribute cpc by property method
+        ''' Getter method of attribute cpc by property decorator
 
         Epid -> float '''
         return self.__cpc
 
     @property
     def incubation_days(self):
-        ''' Getter method of attribute incubation_days by property method
+        ''' Getter method of attribute incubation_days by property decorator
 
         Epid -> int '''
         return self.__incubation_days
 
     @property
     def recovery_days(self):
-        ''' Getter method of attribute recovery_days by property method
+        ''' Getter method of attribute recovery_days by property decorator
 
         Epid -> int '''
         return self.__recovery_days
 
     @property
     def days(self):
-        ''' Getter method of attribute cpc by property method
+        ''' Getter method of attribute cpc by property decorator
 
         Epid -> float '''
         return self.__days
@@ -95,14 +98,14 @@ class Epid:
 
     @property
     def symptomatic(self):
-        ''' Getter method of attribute symptomatic by property method
+        ''' Getter method of attribute symptomatic by property decorator
 
         Epid -> bool '''
         return self.__symptomatic
 
     @property
     def asymptomatic_variant(self):
-        ''' Getter method of attribute asymptomatic_variant by property method
+        ''' Getter method of attribute asymptomatic_variant by property decorator
 
         Epid -> bool or float '''
         return self.__asymptomatic_variant
